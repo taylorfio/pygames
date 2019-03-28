@@ -1,3 +1,4 @@
+# Pygame template - skeleton for a new pygame project
 import pygame
 import random
 
@@ -5,14 +6,14 @@ WIDTH = 360
 HEIGHT = 480
 FPS = 30
 
-#colors
+# define colors
 WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
 RED = (255, 0, 0)
 GREEN = (0, 255, 0)
 BLUE = (0, 0, 255)
 
-# initialize pygame and creates window
+# initialize pygame and create window
 pygame.init()
 pygame.mixer.init()
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
@@ -20,53 +21,24 @@ pygame.display.set_caption("My Game")
 clock = pygame.time.Clock()
 
 all_sprites = pygame.sprite.Group()
-
-
-class User:
-    def __init__(self):
-        self.image = pygame.Surface([30, 30])
-        self.image.fill(WHITE)
-        self.x = 400
-        self.y = 300
-
-    def keys_input(self):
-        key = pygame.key.get_pressed()
-        dist = 15
-        if key[pygame.K_s]:
-            user.y += dist
-        elif key[pygame.K_w]:
-            user.y -= dist
-        if key[pygame.K_d]:
-            user.x += dist
-        elif key[pygame.K_a]:
-            user.x -= dist
-
-    def draw(self, surface):
-        surface.blit(self.image, (self.x, self.y))
-
-
-
-
-
-
 # Game loop
 running = True
 while running:
-    clock.tick(FPS)  # keeps the loop running at the right speed
-    for event in pygame.event.get():  # Process input
-        if event.type == pygame.QUIT:  # checks for closing window
+    # keep loop running at the right speed
+    clock.tick(FPS)
+    # Process input (events)
+    for event in pygame.event.get():
+        # check for closing window
+        if event.type == pygame.QUIT:
             running = False
 
-    user = User()
-
-
+    # Update
     all_sprites.update()
-    user.keys_input()
 
+    # Draw / render
     screen.fill(BLACK)
-
-    user.draw(screen)
     all_sprites.draw(screen)
+    # *after* drawing everything, flip the display
     pygame.display.flip()
 
 pygame.quit()
