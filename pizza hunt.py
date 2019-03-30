@@ -24,7 +24,7 @@ while restart:
     pygame.init()  # loads pygame
     pygame.mixer.init()  # loads the sounds
     screen = pygame.display.set_mode((WIDTH, HEIGHT))
-    pygame.display.set_caption("shooter game")
+    pygame.display.set_caption("PAPA'S PIZZA HUNT")
     clock = pygame.time.Clock()
 
     font_name = pygame.font.match_font('arial')
@@ -38,7 +38,7 @@ while restart:
         surface.blit(text_surface, text_rect)
 
     def start_screen():
-        draw_text(screen, "PAPPAS PIZZA HUNT", 64, WIDTH / 2, HEIGHT / 4)
+        draw_text(screen, "PAPA'S PIZZA HUNT", 64, WIDTH / 2, HEIGHT / 4)
         draw_text(screen, "left and right arrow keys to move, up arrow key to fire", 22, WIDTH / 2, HEIGHT / 2)
         draw_text(screen, "Press a key to begin", 30, WIDTH / 2, HEIGHT * 3 / 4)
         draw_text(screen, "Press exit to quit", 18, WIDTH / 2, HEIGHT * 3 / 4 + 30)
@@ -54,13 +54,18 @@ while restart:
 
     def end_screen(score):
         draw_text(screen, "YOU LOST", 64, WIDTH / 2, HEIGHT / 4)
-        end_text = "you got " + str(score)
+        end_text = "SCORE: " + str(score)
         draw_text(screen, end_text, 35, WIDTH / 2, HEIGHT / 2 - 100)
-        draw_text(screen, "HIGH SCORES", 35, WIDTH / 2, HEIGHT / 2 - 30)
+        draw_text(screen, "HIGH SCORE", 35, WIDTH / 2, HEIGHT / 2 - 30)
 
-        # """ save points of text document and print top five """
-        # draw_text(screen, high_score_text, 35, WIDTH / 2, HEIGHT / 2 - 20)
+        try:
+            file3 = open("save.txt", "r")
+            line2 = str(file3.seek(0))
+            file3.close()
+        except IOError:
+            line2 = "ERROR SCORE NOT FOUND"
 
+        draw_text(screen, str(line2), 35, WIDTH / 2, HEIGHT / 2)
 
         draw_text(screen, "Press a key to restart", 30, WIDTH / 2, HEIGHT * 3 / 4)
         draw_text(screen, "Press exit to quit", 18, WIDTH / 2, HEIGHT * 3 / 4 + 30)
@@ -141,8 +146,7 @@ while restart:
 
 
     # loads all the game graphics
-    #background = pygame.image.load(path.join(img_dir, "whitewall.jpg")).convert
-    #background_rect = background.get_rect()
+    background = pygame.image.load(path.join(img_dir, "dark restaurant.jpg"))
     player_img = pygame.image.load(path.join(img_dir, 'pappa.png')).convert()
     enemy_img = pygame.image.load(path.join(img_dir, 'PizzaSlice.png')).convert()
     bullet_img = pygame.image.load(path.join(img_dir, 'lightninbolt.png')).convert()
@@ -168,7 +172,7 @@ while restart:
     score = 0
     pygame.mixer.music.play(loops=-1)  # tells pygame to loop music when it reaches the end
 
-    start_screen()
+    start_screen()  # runs the screen for when you begin the game
 
     # game loop
     running = True
@@ -200,17 +204,26 @@ while restart:
         if collision:
             running = False
 
-
         # Draw / render
         screen.fill(BLACK)
-        #screen.blit(background, background_rect)
+        screen.blit(background, (0,0))
         all_sprites.draw(screen)
         draw_text(screen, str(score), 50, WIDTH / 2, 10)
 
         pygame.display.flip()  # after it draws everything flip the display
 
-    end_screen(score)
+    try:
+        file1 = open("save.txt", "r")
+        line1 = int(file1.seek(0))
+        file1.close()
+        file2 = open("save.txt", "w")
+        if int(score) > int(line1):
+            file2.write(str(score))
+        end_screen(score)
+        file2.close()
+    except IOError:
+        end_screen(score)
 
 pygame.quit()
 
-# backround broke
+# score broke
