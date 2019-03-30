@@ -11,7 +11,7 @@ while restart:
     WIDTH = 480
     HEIGHT = 600
     FPS = 60
-    POWERUP_TIME = 3000  # milliseconds
+    POWERUP_TIME = 2000  # milliseconds
 
     # define colors
     WHITE = (255, 255, 255)
@@ -138,8 +138,9 @@ while restart:
                 shoot_sound.play()
 
         def powerup(self):
-            self.power += 1
-            self.power_time = pygame.time.get_ticks()
+            if self.power < 2:
+                self.power += 1
+                self.power_time = pygame.time.get_ticks()
 
     class Enemy(pygame.sprite.Sprite):
         def __init__(self):
