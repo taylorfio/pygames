@@ -11,6 +11,7 @@ while restart:
     WIDTH = 480
     HEIGHT = 600
     FPS = 60
+    POWERUP_TIME = 3000  # milliseconds
 
     # define colors
     WHITE = (255, 255, 255)
@@ -59,13 +60,20 @@ while restart:
         draw_text(screen, "HIGH SCORE", 35, WIDTH / 2, HEIGHT / 2 - 30)
 
         try:
-            file3 = open("save.txt", "r")
-            line2 = str(file3.seek(0))
-            file3.close()
+            file1 = open("save.txt", "r")
+            line1 = int(file1.seek(0))
+            file1.close()
+            file2 = open("save.txt", "w")
+            if int(score) > int(line1):
+                file2.write(str(score))
+                number = score
+            else:
+                number = line1
+            file2.close()
         except IOError:
-            line2 = "ERROR SCORE NOT FOUND"
+            number = "ERROR SCORE NOT FOUND"
 
-        draw_text(screen, str(line2), 35, WIDTH / 2, HEIGHT / 2)
+        draw_text(screen, str(number), 35, WIDTH / 2, HEIGHT / 2)
 
         draw_text(screen, "Press a key to restart", 30, WIDTH / 2, HEIGHT * 3 / 4)
         draw_text(screen, "Press exit to quit", 18, WIDTH / 2, HEIGHT * 3 / 4 + 30)
@@ -88,8 +96,17 @@ while restart:
             self.rect.centerx = WIDTH / 2
             self.rect.bottom = HEIGHT - 10
             self.speedx = 0
+            # powerup
+            self.power = 1  # sets base power level
+            self.power_time = pygame.time.get_ticks()  # timer to know when to go back to normal
 
         def update(self):
+            # timeout for powerups
+            # if howerver long its been since the getting the power up is greater then the amount of time
+            if self.power >= 2 and pygame.time.get_ticks() - self.power_time > POWERUP_TIME:
+                self.power -= 1
+                self.power_time = pygame.time.get_ticks()  # resets the timer
+
             self.speedx = 0
             keystate = pygame.key.get_pressed()
             if keystate[pygame.K_LEFT]:
@@ -103,11 +120,26 @@ while restart:
                 self.rect.left = 0
 
         def shoot(self):
-            bullet = Bullet(self.rect.centerx, self.rect.top)
-            all_sprites.add(bullet)
-            bullets.add(bullet)
-            shoot_sound.play()
+            if self.power == 1:
+                bullet = Bullet(self.rect.centerx, self.rect.top)
+                all_sprites.add(bullet)
+                bullets.add(bullet)
+                shoot_sound.play()
+            if self.power == 2:
+                bullet1 = Bullet(self.rect.left, self.rect.centery)
+                bullet2 = Bullet(self.rect.right, self.rect.centery)
+                bullet3 = Bullet(self.rect.centerx, self.rect.centery)
+                all_sprites.add(bullet1)
+                all_sprites.add(bullet2)
+                all_sprites.add(bullet3)
+                bullets.add(bullet1)
+                bullets.add(bullet2)
+                bullets.add(bullet3)
+                shoot_sound.play()
 
+        def powerup(self):
+            self.power += 1
+            self.power_time = pygame.time.get_ticks()
 
     class Enemy(pygame.sprite.Sprite):
         def __init__(self):
@@ -144,12 +176,47 @@ while restart:
             if self.rect.bottom < 0:  # kills if it moves off the top of the screen
                 self.kill()
 
+    class Powerup(pygame.sprite.Sprite):
+        def __init__(self, center):
+            pygame.sprite.Sprite.__init__(self)
+            self.image = powerup_img
+            self.image.set_colorkey(BLACK)
+            self.rect = self.image.get_rect()
+            self.rect.center = center
+            self.speedy = 20
+
+        def update(self):
+            self.rect.y += self.speedy
+            if self.rect.top > HEIGHT:  # kill if it moves off the bottom of the screen
+                self.kill()
+
+    class Boss(pygame.sprite.Sprite):
+        def __init__(self):
+            pygame.sprite.Sprite.__init__(self)
+            self.image = pygame.transform.scale(calzone_img, (200, 100))
+            self.image.set_colorkey(BLACK)
+            self.rect = self.image.get_rect()
+            self.rect.x = random.randrange(0, WIDTH - self.rect.width)
+            self.rect.y = random.randrange(-100, -40)
+            self.speedy = 20
+            self.speedx = 0
+
+        def update(self):
+            self.rect.x += self.speedx
+            self.rect.y += self.speedy
+            if self.rect.top > HEIGHT + 10 or self.rect.left < -25 or self.rect.right > WIDTH + 20:
+                self.rect.x = random.randrange(0, WIDTH - self.rect.width)
+                self.rect.y = random.randrange(-100, -40)
+                self.speedy = random.randrange(1, 8)
 
     # loads all the game graphics
-    background = pygame.image.load(path.join(img_dir, "dark restaurant.jpg"))
+    # .convert() converts the image to the same pixel format as the display
+    background = pygame.image.load(path.join(img_dir, "dark restaurant.jpg")).convert()
     player_img = pygame.image.load(path.join(img_dir, 'pappa.png')).convert()
     enemy_img = pygame.image.load(path.join(img_dir, 'PizzaSlice.png')).convert()
     bullet_img = pygame.image.load(path.join(img_dir, 'lightninbolt.png')).convert()
+    powerup_img = pygame.image.load(path.join(img_dir, 'bolt.png')).convert()
+    calzone_img = pygame.image.load(path.join(img_dir, 'calzone.png')).convert()
 
     # loads all the game sounds
     pygame.mixer.music.set_volume(0.4)
@@ -159,11 +226,14 @@ while restart:
     for sound in ['expl3.wav', 'expl6.wav']:
         explosion_sounds.append(pygame.mixer.Sound(path.join(snd_dir, sound)))
 
+    # puts the sprites in groups to easily call them
     all_sprites = pygame.sprite.Group()
     player = Player()
+    all_sprites.add(player)
     enemy = pygame.sprite.Group()
     bullets = pygame.sprite.Group()
-    all_sprites.add(player)
+    powerups = pygame.sprite.Group()
+    boss = pygame.sprite.Group()
     for amount in range(8):
         m = Enemy()
         all_sprites.add(m)
@@ -180,7 +250,7 @@ while restart:
 
         clock.tick(FPS)  # keeps loop running at the right frame rate
 
-        # process input (events)
+        # process the input (events)
         for event in pygame.event.get():  # checks for closing input
             if event.type == pygame.QUIT:
                 running = False
@@ -190,7 +260,7 @@ while restart:
 
         all_sprites.update()  # updates the sprites
 
-        # checks to see if a bullet hit a mob
+        # checks to see if a bullet hits a enemy
         hits = pygame.sprite.groupcollide(enemy, bullets, True, True)
         for hit in hits:
             random.choice(explosion_sounds).play()
@@ -199,30 +269,51 @@ while restart:
             all_sprites.add(m)
             enemy.add(m)
 
-        # checks to see if mob hit player
+            # every time you hit an enemy there is a chance to spawn the boss
+            boss_spawn = random.randint(1, 20)
+            if boss_spawn == 1:  # picks a random between 1 and 20 creating a 5% chance
+                b = Boss()
+                all_sprites.add(boss)
+                boss.add(b)
+            # every time you hit an enemy there is a chance to spawn a power up
+            if random.random() > 0.9:  # picks a random decimal number between 0 and 1 creating a 10% chance
+                powerup = Powerup(hit.rect.center)
+                all_sprites.add(powerup)
+                powerups.add(powerup)
+
+        # checks to see if a bullet hits the boss
+        boss_hits = pygame.sprite.groupcollide(boss, bullets, True, True)
+        for hit in boss_hits:
+            random.choice(explosion_sounds).play()
+            score += 50
+            b = Boss()
+            all_sprites.remove(boss)
+            boss.remove(b)
+
+        # checks to see if player hits a powerup
+        hits = pygame.sprite.spritecollide(player, powerups, True)
+        for hit in hits:
+            player.powerup()
+
+        # checks to see if enemy hits player
         collision = pygame.sprite.spritecollide(player, enemy, False)
+        if collision:
+            running = False
+
+        # checks to see if boss hits player
+        collision = pygame.sprite.spritecollide(player, boss, False)
         if collision:
             running = False
 
         # Draw / render
         screen.fill(BLACK)
-        screen.blit(background, (0,0))
+        screen.blit(background, (0, 0))
         all_sprites.draw(screen)
         draw_text(screen, str(score), 50, WIDTH / 2, 10)
 
         pygame.display.flip()  # after it draws everything flip the display
 
-    try:
-        file1 = open("save.txt", "r")
-        line1 = int(file1.seek(0))
-        file1.close()
-        file2 = open("save.txt", "w")
-        if int(score) > int(line1):
-            file2.write(str(score))
-        end_screen(score)
-        file2.close()
-    except IOError:
-        end_screen(score)
+    end_screen(score)
 
 pygame.quit()
 
