@@ -142,6 +142,7 @@ while restart:
                 self.power += 1
                 self.power_time = pygame.time.get_ticks()
 
+
     class Enemy(pygame.sprite.Sprite):
         def __init__(self):
             pygame.sprite.Sprite.__init__(self)
@@ -177,6 +178,7 @@ while restart:
             if self.rect.bottom < 0:  # kills if it moves off the top of the screen
                 self.kill()
 
+
     class Powerup(pygame.sprite.Sprite):
         def __init__(self, center):
             pygame.sprite.Sprite.__init__(self)
@@ -190,6 +192,7 @@ while restart:
             self.rect.y += self.speedy
             if self.rect.top > HEIGHT:  # kill if it moves off the bottom of the screen
                 self.kill()
+
 
     class Boss(pygame.sprite.Sprite):
         def __init__(self):
@@ -210,6 +213,7 @@ while restart:
                 self.rect.y = random.randrange(-100, -40)
                 self.speedy = random.randrange(1, 8)
 
+
     # loads all the game graphics
     # .convert() converts the image to the same pixel format as the display
     background = pygame.image.load(path.join(img_dir, "dark restaurant.jpg")).convert()
@@ -221,7 +225,7 @@ while restart:
 
     # loads all the game sounds
     pygame.mixer.music.set_volume(0.4)
-    pygame.mixer.music.load(path.join(snd_dir, 'i am a pizza.mp3'))
+    pygame.mixer.music.load(path.join(snd_dir, 'melody.mp3'))
     shoot_sound = pygame.mixer.Sound(path.join(snd_dir, 'pew.wav'))
     explosion_sounds = []
     for sound in ['expl3.wav', 'expl6.wav']:
