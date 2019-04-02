@@ -1,3 +1,10 @@
+"""
+backstory:
+In this game you are papa john, the previous king of the major pizza corporation and have recently been dethroned by
+your own disciples to be replaced by shaquille o'neal. You need to fight your way through the hoards of pizza minions
+sent by shaq himself to confront him in a final battle to reclaim your honor and take back the throne.
+"""
+
 import pygame
 import random
 from os import path
@@ -30,7 +37,10 @@ while restart:  # loop for game
 
     font_name = pygame.font.match_font('arial')  # sets font
 
-
+    """
+    this function makes it easy to display text by allowing you to call it and just set the parameter as what you want
+    instead of doing something complicated every time
+    """
     def draw_text(surface, text, size, x, y):  # function for drawing text on the screen
         font = pygame.font.Font(font_name, size)
         text_surface = font.render(text, True, WHITE)  # True means that the text will be anti-aliased
@@ -38,6 +48,7 @@ while restart:  # loop for game
         text_rect.midtop = (x, y)  # sets the texts position
         surface.blit(text_surface, text_rect)
 
+    """this function displays the start screen and waits for the user input to go away"""
     def start_screen():
         draw_text(screen, "PAPA'S PIZZA HUNT", 64, WIDTH / 2, HEIGHT / 4)  # draws text
         draw_text(screen, "left and right arrow keys to move, up arrow key to fire", 22, WIDTH / 2, HEIGHT / 2)
@@ -53,29 +64,30 @@ while restart:  # loop for game
                 elif event.type == pygame.KEYUP:  # if any other key is pressed game starts
                     waiting = False
 
+    """this function displays the end screen with the score and high score and waits for the user input to go away"""
     def end_screen(score):
         draw_text(screen, "YOU LOST", 64, WIDTH / 2, HEIGHT / 4)   # draws text
         end_text = "SCORE: " + str(score)  # shows game score
         draw_text(screen, end_text, 35, WIDTH / 2, HEIGHT / 2 - 100)
         draw_text(screen, "HIGH SCORE", 35, WIDTH / 2, HEIGHT / 2 - 30)
 
-        try:
-            file1 = open("save.txt", "r")
+        try:  # trys to open the file that saves the high score
+            file1 = open("save.txt", "r")  # opens file to read
             line1 = file1.read()
-            line1 = int(line1)
-            file1.close()
-            file2 = open("save.txt", "w")
-            if int(score) > int(line1):
-                file2.write(str(score))
-                number = score
+            line1 = int(line1)  # saves the number as a variable
+            file1.close()  # closes file
+            file2 = open("save.txt", "w")  # opens file to write
+            if int(score) > int(line1):  # if you get a better score
+                file2.write(str(score))  # writes new score
+                number = score  # variable for printed score
             else:
-                file2.write(str(line1))
-                number = line1
-            file2.close()
-        except IOError:
+                file2.write(str(line1))  # writes the old high score
+                number = line1  # variable for printed score
+            file2.close()  # closes file
+        except IOError:  # error for file not found
             number = "ERROR SCORE NOT FOUND"
 
-        draw_text(screen, str(number), 35, WIDTH / 2, HEIGHT / 2)
+        draw_text(screen, str(number), 35, WIDTH / 2, HEIGHT / 2)  # prints the high score number
 
         draw_text(screen, "Press a key to restart", 30, WIDTH / 2, HEIGHT * 3 / 4)
         draw_text(screen, "Press exit to quit", 18, WIDTH / 2, HEIGHT * 3 / 4 + 30)
@@ -89,6 +101,11 @@ while restart:  # loop for game
                 elif event.type == pygame.KEYUP:  # if any other key is pressed game starts
                     waiting = False
 
+    """
+    This class contains everything that is related to the player sprite. The update method shows the user movements 
+    on the screen and checks to see what power mode it is in. The shoot method tells the bullet when and where to 
+    spawn in which power mode. THe powe rup method tells the sprite when to change power modes.
+    """
     class Player(pygame.sprite.Sprite):
         def __init__(self):
             pygame.sprite.Sprite.__init__(self)
@@ -143,7 +160,10 @@ while restart:  # loop for game
                 self.power += 1  # changes the power variable
                 self.power_time = pygame.time.get_ticks()  # sets timer
 
-
+    """
+    This class contains everything for the enemy sprite and its stats are randomized. The update method shows the 
+    movements of the sprite and removes it if it goes off the bottom of the screen or bounces if it touches the side.
+    """
     class Enemy(pygame.sprite.Sprite):
         def __init__(self):
             pygame.sprite.Sprite.__init__(self)
@@ -158,12 +178,17 @@ while restart:  # loop for game
         def update(self):
             self.rect.x += self.speedx  # updates the position of the sprite by what it is moving by
             self.rect.y += self.speedy
-            if self.rect.top > HEIGHT + 10 or self.rect.left < -25 or self.rect.right > WIDTH + 20:  # if the top of the sprite is below the bottom it respawns at the top
+            if self.rect.top > HEIGHT + 10:  # if the top of the sprite is below the bottom it respawns at the top
                 self.rect.x = random.randrange(0, WIDTH - self.rect.width)
                 self.rect.y = random.randrange(-100, -40)  # respawns it
-                self.speedy = random.randrange(1, 8)
+                self.speedy = random.randrange(4, 8)
+            if self.rect.left < -25 or self.rect.right > WIDTH + 20:
+                self.speedx = -self.speedx  # bounces of the side
 
-
+    """
+    This class contains everything for the bullet sprite like the image, size and speed. The update method shows the
+    movement and removes it if it goes of the top of the screen.
+    """
     class Bullet(pygame.sprite.Sprite):
         def __init__(self, x, y):
             pygame.sprite.Sprite.__init__(self)
@@ -179,7 +204,10 @@ while restart:  # loop for game
             if self.rect.bottom < 0:  # kills if it moves off the top of the screen
                 self.kill()
 
-
+    """
+    This class contains everything for the power up sprite like the image, size and speed. The update method shows the
+    movement and removes it if it goes of the top of the screen.
+    """
     class Powerup(pygame.sprite.Sprite):
         def __init__(self, center):
             pygame.sprite.Sprite.__init__(self)
@@ -194,7 +222,10 @@ while restart:  # loop for game
             if self.rect.top > HEIGHT:  # kill if it moves off the bottom of the screen
                 self.kill()
 
-
+    """
+    This class contains everything for the boss sprite like the image, size and speed. The update method shows the 
+    movements of the sprite and removes it if it goes off the bottom of the screen or bounces if it touches the side.
+    """
     class Boss(pygame.sprite.Sprite):
         def __init__(self):
             pygame.sprite.Sprite.__init__(self)
